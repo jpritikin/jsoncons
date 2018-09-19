@@ -97,12 +97,23 @@ matrix:
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.1'}
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.2'}
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.3'}
-    # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.4'}
+    - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.4'}
     - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11 -march=armv8-a -target aarch64-linux-gnueabi "', compiler: clang, osx_image: xcode9.4'}
 
 script:
   - cd tests/build/cmake
-  - cmake . ${CMAKE_OPTIONS}
-  - cmake --build . --config Release
-  - ctest -C Release -V -j
+  - if [[ "$CROSS_COMPILE" == 1 ]]; then
+      if [[ "$ARM_ARCH_DIR" == "aarch64-linux-gnu" ]]; then
+        qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./test_xsimd ;
+      else
+        qemu-arm -L /usr/arm-linux-gnueabi/ ./test_xsimd ;
+      fi
+    elif [[ "$AVX512" == 1 ]] ; then
+      uname -m ;
+      ../intel-sde-downloader/sde-external-8.16.0-2018-01-30-lin/sde64 -cnl -- ./test_xsimd ;
+    else
+        cmake . ${CMAKE_OPTIONS}
+        cmake --build . --config Release
+        ctest -C Release -V -j
+    fi
 

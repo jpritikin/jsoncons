@@ -55,5 +55,13 @@ endif()
 enable_testing()
 add_test(NAME jsoncons_tests WORKING_DIRECTORY ${JSONCONS_TESTS_DIR} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/jsoncons_tests)
 
- 
+set(XSIMD_TARGET test_xsimd)
+add_executable(${XSIMD_TARGET} EXCLUDE_FROM_ALL ${XSIMD_TESTS} ${XSIMD_HEADERS})
+target_link_libraries(${XSIMD_TARGET} xsimd ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+if (CROSS_COMPILE_ARM)
+    add_custom_target(xtest COMMAND qemu-arm -L /usr/arm-linux-gnueabi/ test_xsimd DEPENDS ${XSIMD_TARGET})
+else()
+    add_custom_target(xtest COMMAND test_xsimd DEPENDS ${XSIMD_TARGET})
+endif()
 
