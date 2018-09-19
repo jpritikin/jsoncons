@@ -71,10 +71,6 @@ addons:
     packages:
       - cmake
 
-before_install:
-  - curl -L http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-  - echo 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main' | sudo tee /etc/apt/sources.list
-
 matrix:
   include:
     # - { env: 'CXX=g++-4.8 CMAKE_OPTIONS="-DCXXSTD=11"', addons: *gcc48 }
@@ -98,6 +94,27 @@ matrix:
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.2'}
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.3'}
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode9.4'}
+
+env:
+  global:
+    - MINCONDA_VERSION="latest"
+    - MINCONDA_LINUX="Linux-x86_64"
+    - MINCONDA_OSX="MacOSX-x86_64"
+before_install:
+    - curl -L http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+    - echo 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main' | sudo tee /etc/apt/sources.list
+    - |
+      # Configure build variables
+      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        if [[ "$COMPILER" == "gcc" ]]; then
+          export CXX=g++-$GCC CC=gcc-$GCC;
+        fi
+        if [[ "$COMPILER" == "clang" ]]; then
+          export CXX=clang++-$CLANG CC=clang-$CLANG;
+        fi
+      elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        export CXX=clang++ CC=clang;
+      fi
 
 install:
     - cd tests/build/cmake
