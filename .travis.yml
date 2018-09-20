@@ -17,6 +17,18 @@ addon_shortcuts:
         - clang-3.8
         - libc++-dev
 
+  clang39: &clang39
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - clang-3.9
+        - g++-arm-linux-gnueabi
+        - g++-multilib
+        - gcc-multilib
+        - qemu
+        - qemu-system-arm
+
   clang50: &clang50
     apt:
       sources:
@@ -81,6 +93,7 @@ matrix:
     # - { env: 'CXX=g++-8 CMAKE_OPTIONS="-DCXXSTD=17"', addons: *gcc8 }
     # - { env: 'CXX=g++-8 CXXFLAGS="-DJSONCONS_NO_DEPRECATED" CMAKE_OPTIONS="-DCXXSTD=17"', addons: *gcc8 }
     # - { env: 'CXX=clang++-3.8 CMAKE_OPTIONS="-DCXXSTD=11"', addons: *clang38 }
+     - { env: 'CXX=clang++-3.9  CROSS_COMPILE=1 ARM_ARCH_DIR=arm-linux-gnueabi GCC_VER=4.7.3 ARM_SETTINGS="armv7-a -mfpu=neon -mfloat-abi=softfp -target arm-linux-gnueabi", addons: *clang39 }
     # - { env: 'CXX=clang++-5.0 CMAKE_OPTIONS="-DCXXSTD=11"', addons: *clang50 }
     - { env: 'CXX=clang++-6.0 CMAKE_OPTIONS="-DCXXSTD=11"', addons: *clang60 }
     # - { env: 'CXX=clang++ CMAKE_OPTIONS="-DCXXSTD=11"', compiler: clang, osx_image: xcode6.4'}
