@@ -160,19 +160,19 @@ install:
       else
         cmake . -DBUILD_TESTS=ON ${CMAKE_OPTIONS};
       fi
-    - make -j2 test_xsimd
+    - make -j2 jsoncons_tests
     - cd test
 
 script:
   - if [[ "$CROSS_COMPILE" == 1 ]]; then
       if [[ "$ARM_ARCH_DIR" == "aarch64-linux-gnu" ]]; then
-        qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./test_xsimd ;
+        qemu-aarch64 -L /usr/aarch64-linux-gnu/ ./jsoncons_tests ;
       else
-        qemu-arm -L /usr/arm-linux-gnueabi/ ./test_xsimd ;
+        qemu-arm -L /usr/arm-linux-gnueabi/ ./jsoncons_tests ;
       fi
     elif [[ "$AVX512" == 1 ]] ; then
       uname -m ;
-      ../intel-sde-downloader/sde-external-8.16.0-2018-01-30-lin/sde64 -cnl -- ./test_xsimd ;
+      ../intel-sde-downloader/sde-external-8.16.0-2018-01-30-lin/sde64 -cnl -- ./jsoncons_tests ;
     else
       cmake . ${CMAKE_OPTIONS};
       cmake --build . --config Release;
