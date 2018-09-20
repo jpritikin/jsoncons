@@ -161,7 +161,6 @@ install:
         cmake . -DBUILD_TESTS=ON ${CMAKE_OPTIONS};
       fi
     - make -j2 jsoncons_tests
-    - cd test
 
 script:
   - if [[ "$CROSS_COMPILE" == 1 ]]; then
