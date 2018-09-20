@@ -192,14 +192,16 @@ public:
     }
 private:
 
-    void do_begin_document() override
+    bool do_begin_document() override
     {
         event_ = basic_json_event<CharT,Allocator>(json_event_type::begin_document);
+        return false;
     }
 
-    void do_end_document() override
+    bool do_end_document() override
     {
         event_ = basic_json_event<CharT,Allocator>(json_event_type::end_document);
+        return false;
     }
 
     bool do_begin_object(const serializing_context&) override
@@ -332,6 +334,10 @@ public:
          begin_(true)
     {
         buffer_.reserve(buffer_length_);
+        if (has_next())
+        {
+            next();
+        }
     }
 
     size_t buffer_length() const

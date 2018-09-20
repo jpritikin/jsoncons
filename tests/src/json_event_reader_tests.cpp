@@ -46,6 +46,12 @@ TEST_CASE("json event reader tests")
         const auto& event = event_reader.current();
         switch (event.event_type())
         {
+            case json_event_type::begin_document:
+                std::cout << "Begin document\n";
+                break;
+            case json_event_type::end_document:
+                std::cout << "End document\n";
+                break;
             case json_event_type::name:
                 std::cout << event.as<std::string>() << ": ";
                 break;

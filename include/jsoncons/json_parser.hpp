@@ -89,6 +89,8 @@ enum class parse_state : uint8_t
 {
     root,
     start, 
+    begin_document, 
+    end_document, 
     slash,  
     slash_slash, 
     slash_star, 
@@ -340,13 +342,13 @@ public:
         continue_ = handler_.begin_object(*this);
     }
 
-    bool end_object(std::error_code& ec)
+    void end_object(std::error_code& ec)
     {
         if (nesting_depth_ < 1)
         {
             err_handler_.fatal_error(json_parse_errc::unexpected_right_brace, *this);
             ec = json_parse_errc::unexpected_right_brace;
-            return false;
+            return;
         }
         --nesting_depth_;
         state_ = pop_state();
@@ -358,26 +360,24 @@ public:
         {
             err_handler_.fatal_error(json_parse_errc::expected_comma_or_right_bracket, *this);
             ec = json_parse_errc::expected_comma_or_right_bracket;
-            return false;
+            return;
         }
         else
         {
             err_handler_.fatal_error(json_parse_errc::unexpected_right_brace, *this);
             ec = json_parse_errc::unexpected_right_brace;
-            return false;
+            return;
         }
 
         if (parent() == parse_state::root)
         {
-            state_ = parse_state::done;
-            handler_.end_document();
-            continue_ = false;
+            continue_ = handler_.end_document();
+            state_ = parse_state::end_document;
         }
         else
         {
             state_ = parse_state::expect_comma_or_end;
         }
-        return true;
     }
 
     void begin_array(std::error_code& ec)
@@ -423,9 +423,8 @@ public:
         }
         if (parent() == parse_state::root)
         {
-            state_ = parse_state::done;
-            handler_.end_document();
-            continue_ = false;
+            continue_ = handler_.end_document();
+            state_ = parse_state::end_document;
         }
         else
         {
@@ -520,8 +519,13 @@ public:
                 state_ = pop_state();
                 break;
             case parse_state::start: 
+                continue_ = handler_.begin_document();
+                state_ = parse_state::begin_document;
+                if (!continue_)
+                    break;
+                // FALLTHRU
+            case parse_state::begin_document: 
                 {
-                    handler_.begin_document();
                     switch (*input_ptr_)
                     {
                         JSONCONS_ILLEGAL_CONTROL_CHARACTER:
@@ -627,6 +631,11 @@ public:
                             return;
                     }
                 }
+                break;
+
+            case parse_state::end_document: 
+                state_ = parse_state::done;
+                continue_ = false;
                 break;
 
             case parse_state::expect_comma_or_end: 
@@ -1220,9 +1229,8 @@ public:
                     continue_ = handler_.bool_value(true,*this);
                     if (parent() == parse_state::root)
                     {
-                        state_ = parse_state::done;
-                        handler_.end_document();
-                        continue_ = false;
+                        continue_ = handler_.end_document();
+                        state_ = parse_state::end_document;
                     }
                     else
                     {
@@ -1286,9 +1294,8 @@ public:
                     continue_ = handler_.bool_value(false,*this);
                     if (parent() == parse_state::root)
                     {
-                        state_ = parse_state::done;
-                        handler_.end_document();
-                        continue_ = false;
+                        continue_ = handler_.end_document();
+                        state_ = parse_state::end_document;
                     }
                     else
                     {
@@ -1338,9 +1345,8 @@ public:
                     continue_ = handler_.null_value(*this);
                     if (parent() == parse_state::root)
                     {
-                        state_ = parse_state::done;
-                        handler_.end_document();
-                        continue_ = false;
+                        continue_ = handler_.end_document();
+                        state_ = parse_state::end_document;
                     }
                     else
                     {
@@ -1456,9 +1462,8 @@ public:
                 column_ += 4;
                 if (parent() == parse_state::root)
                 {
-                    handler_.end_document();
-                    state_ = parse_state::done;
-                    continue_ = false;
+                    continue_ = handler_.end_document();
+                    state_ = parse_state::end_document;
                 }
                 else
                 {
@@ -1491,9 +1496,8 @@ public:
                 column_ += 4;
                 if (parent() == parse_state::root)
                 {
-                    handler_.end_document();
-                    state_ = parse_state::done;
-                    continue_ = false;
+                    continue_ = handler_.end_document();
+                    state_ = parse_state::end_document;
                 }
                 else
                 {
@@ -1526,9 +1530,8 @@ public:
                 column_ += 5;
                 if (parent() == parse_state::root)
                 {
-                    handler_.end_document();
-                    state_ = parse_state::done;
-                    continue_ = false;
+                    continue_ = handler_.end_document();
+                    state_ = parse_state::end_document;
                 }
                 else
                 {
@@ -2709,9 +2712,8 @@ private:
             break;
         case parse_state::root:
             continue_ = handler_.string_value(string_view_type(s, length), *this);
-            state_ = parse_state::done;
-            handler_.end_document();
-            continue_ = false;
+            continue_ = handler_.end_document();
+            state_ = parse_state::end_document;
             break;
         default:
             if (err_handler_.error(json_parse_errc::invalid_json_text, *this))
@@ -2754,9 +2756,8 @@ private:
             state_ = parse_state::expect_comma_or_end;
             break;
         case parse_state::root:
-            state_ = parse_state::done;
-            handler_.end_document();
-            continue_ = false;
+            continue_ = handler_.end_document();
+            state_ = parse_state::end_document;
             break;
         default:
             if (err_handler_.error(json_parse_errc::invalid_json_text, *this))
