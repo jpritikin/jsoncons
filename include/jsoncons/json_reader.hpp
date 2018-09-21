@@ -54,14 +54,14 @@ public:
 
 private:
 
-    void do_begin_document() override
+    bool do_begin_document() override
     {
-        other_handler_.begin_document();
+        return other_handler_.begin_document();
     }
 
-    void do_end_document() override
+    bool do_end_document() override
     {
-        other_handler_.end_document();
+        return other_handler_.end_document();
     }
 
     bool do_begin_object(const serializing_context& context) override
@@ -280,7 +280,7 @@ public:
     void read_next(std::error_code& ec)
     {
         parser_.reset();
-        while (!eof_ && !parser_.done())
+        while (!parser_.stopped())
         {
             if (parser_.source_exhausted())
             {
@@ -296,18 +296,11 @@ public:
                 }
                 else
                 {
+                    parser_.update(buffer_.data(),0);
                     eof_ = true;
                 }
             }
-            if (!eof_)
-            {
-                parser_.parse_some(ec);
-                if (ec) return;
-            }
-        }
-        if (eof_)
-        {
-            parser_.end_parse(ec);
+            parser_.parse_some(ec);
             if (ec) return;
         }
     }
