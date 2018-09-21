@@ -6,6 +6,41 @@ cmake_minimum_required (VERSION 3.4)
 # load global config
 include (../../../build/cmake/config.cmake)
 
+################
+# ARM SETTINGS #
+################
+
+OPTION(CROSS_COMPILE_ARM "cross compile for ARM targets" OFF)
+
+# Note: to compile on ARM (or cross compile), you may need to add the following:
+# -DTARGET_ARCH="armv8-a -mfpu=neon -mfloat-abi=softfp -target arm-linux-gnueabi"
+set(TARGET_ARCH "native" CACHE STRING "Target architecture arguments")
+set(ARM_ARCH_DIRECTORY "arm-linux-gnueabi" CACHE STRING "ARM arch header dir")
+set(ARM_GCC_VER "4.7.3" CACHE STRING "ARM GCC header dir")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    if (CROSS_COMPILE_ARM)
+        # We're cross-compiling with clang++ on Travis, this is all pretty specific and just for testing
+        set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+        set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+        set(CMAKE_THREAD_LIBS_INIT)
+
+        include_directories(/usr/${ARM_ARCH_DIRECTORY}/include/c++/${ARM_GCC_VER}/${ARM_ARCH_DIRECTORY}/)
+        include_directories(/usr/${ARM_ARCH_DIRECTORY}/include/c++/${ARM_GCC_VER}/)
+        include_directories(/usr/${ARM_ARCH_DIRECTORY}/include/)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${TARGET_ARCH} -Wunused-parameter -Wextra -Wreorder -std=c++11")
+    elseif(NOT WIN32)
+        CHECK_CXX_COMPILER_FLAG("-std=c++11" HAS_CPP11_FLAG)
+        if (ENABLE_XTL_COMPLEX)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -march=${TARGET_ARCH} -Wunused-parameter -Wextra -Wreorder -std=c++14")
+        elseif (HAS_CPP11_FLAG)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -march=${TARGET_ARCH} -Wunused-parameter -Wextra -Wreorder -std=c++11")
+        else()
+            message(FATAL_ERROR "Unsupported compiler -- xsimd requires C++11 support!")
+        endif()
+    endif()
+endif()
+
 project (Tests CXX)
 set(JSONCONS_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../..)
 set(JSONCONS_TESTS_SOURCE_DIR ${JSONCONS_PROJECT_DIR}/tests/src)
