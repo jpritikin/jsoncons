@@ -88,15 +88,15 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL 
 endif()
 
 enable_testing()
-add_test(NAME jsoncons_tests WORKING_DIRECTORY ${JSONCONS_TESTS_DIR} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/jsoncons_tests)
+# add_test(NAME jsoncons_tests WORKING_DIRECTORY ${JSONCONS_TESTS_DIR} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/jsoncons_tests)
 
-set(XSIMD_TARGET jsoncons_tests)
-# add_executable(${XSIMD_TARGET} EXCLUDE_FROM_ALL ${XSIMD_TESTS} ${XSIMD_HEADERS})
-# target_link_libraries(${XSIMD_TARGET} xsimd ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+set(JSONCONS_TARGET jsoncons_tests)
+# add_executable(${JSONCONS_TARGET} EXCLUDE_FROM_ALL ${XSIMD_TESTS} ${XSIMD_HEADERS})
+# target_link_libraries(${JSONCONS_TARGET} xsimd ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 if (CROSS_COMPILE_ARM)
-    add_custom_target(xtest COMMAND qemu-arm -L /usr/arm-linux-gnueabi/ test_xsimd DEPENDS ${XSIMD_TARGET})
+    add_custom_target(xtest COMMAND qemu-arm -L /usr/arm-linux-gnueabi/ jsoncons_tests DEPENDS ${JSONCONS_TARGET})
 else()
-    add_custom_target(xtest COMMAND jsoncons_tests DEPENDS ${XSIMD_TARGET})
+    add_custom_target(xtest COMMAND jsoncons_tests DEPENDS ${JSONCONS_TARGET})
 endif()
 
